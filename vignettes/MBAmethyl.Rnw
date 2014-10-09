@@ -1,0 +1,100 @@
+%\VignetteIndexEntry{MBAmethyl Vignette}
+%\VignetteKeyword{Methylation}
+%\VignettePackage{MBAmethyl}
+
+\documentclass[12pt]{article}
+
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{amsmath}
+\usepackage{times}
+\usepackage{Sweave}              % Comment out if not using Sweave
+\usepackage{fullpage}
+\def\E{\mathord{I\kern-.35em E}}
+\def\R{\mathord{I\kern-.35em R}}
+\def\P{\mathord{I\kern-.35em P}}
+
+\topmargin=-0.5in
+\textheight=9in
+\textwidth=6.5in
+\oddsidemargin=0in
+
+\newcommand{\proglang}[1]{\textbf{#1}}
+\newcommand{\pkg}[1]{\texttt{\textsl{#1}}}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\mg}[1]{{\textcolor {magenta} {#1}}}
+\newcommand{\gr}[1]{{\textcolor {green} {#1}}}
+\newcommand{\bl}[1]{{\textcolor {blue} {#1}}}
+
+\textwidth=6.2in
+\textheight=8.5in
+\oddsidemargin=0.2in
+\evensidemargin=0.2in
+\headheight=0in
+\headsep=0in
+
+\begin{document}
+\SweaveOpts{concordance=TRUE}
+\SweaveOpts{highlight=TRUE, tidy=TRUE, keep.space=TRUE, keep.blank.space=FALSE, keep.comment=TRUE}
+\SweaveOpts{prefix.string=Fig}
+
+\title{Model-based analysis of DNA methylation data}
+\author{Tao Wang, Mengjie Chen, Hongyu Zhao}
+\date{Oct 2014}
+\maketitle
+
+
+\section{Introduction}
+This guide provides a tour of the Bioconductor package \code{MBAmethy}, a R package implements a region-based DNA methylation analysis method. This method utilize both the information from biological replicates and neighboring probes by explicitly modeling the probe-specific effect and encouraging the neighboring similarity by a group fused lasso penalty. When multiple biological replicates availale, this method can be applied as an alternative to single probe analysis. Our method is applicable to densely methylated data from platforms such as Illumina 450k arrays, CHARM arrays, and bisulfite sequencing.
+
+\section{Overview of capabilities}
+\code{MBAmethyl()} is the main function in the package. It takes a window of multiple probes (we use 200 probes on real data) from multiple samples as input and returns smoothed methylation values.  
+
+Let us simulate a simple dataset with 80 probes from 40 samples.
+<<>>=
+  p <- 80
+  n <- 40
+  K <- 2
+  k <- K - 1
+  cp <- numeric()
+  L <- c(0, floor(p / K) * (1 : k), p)
+  cp <- floor(p / K) * (1 : k) + 1
+
+  ## phi0: probe effects; theta0: true methylation values; part: partition of probe indices
+  phi0 <- runif(p, 0.5, 2.0)
+  theta0 <- matrix(0, p, n)
+  part <- list()
+
+  for (s in 1 : K) {
+    part[[s]] <- (L[s] + 1) : L[s + 1]
+    phi0[part[[s]]] <- phi0[part[[s]]] / sqrt(mean(phi0[part[[s]]]^2))
+  }
+  theta0[part[[1]], ] <- rep(1, length(part[[1]])) %x% t(runif(n, 0.1, 0.6))
+  theta0[part[[2]], ] <- rep(1, length(part[[2]])) %x% t(runif(n, 0.4, 0.9))
+  
+  error <- matrix(runif(p * n, 0, 0.1), p, n)
+  Y <- theta0 * phi0  + error
+@
+
+The input matrix $Y$ is a $p \times n$ matrixof methylation values (beta values), where p is the number of probes and n is the number of samples.
+To get smoothed the methylation values, just apply function \code{MBAmethyl()}:
+<<>>=
+ library(MBAmethyl)
+ fit <- MBAmethyl(Y, steps = 30)
+@
+The function will return two lists of results using AIC and BIC as model selection criteria, respectively. 
+To check BIC result,
+<<>>=
+  str(fit$ans.bic)
+  theta <- fit$ans.bic
+@
+\code{theta} stores the smoothed values.
+
+
+\section*{SessionInfo}
+
+<<sessionInfo,results=tex,eval=TRUE,echo=FALSE>>=
+toLatex(sessionInfo())
+@ 
+
+\end{document}

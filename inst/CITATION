@@ -1,0 +1,15 @@
+citHeader("Please cite the following paper.")
+
+bibentry("Article",
+         title = "{Extracting DNA methylation values by joint modeling of multiple profiles}",
+         author = personList(
+         person(c("Tao"), "Wang"),
+         person("Mengjie", "Chen"),
+         person(c("Hongyu"), "Zhao")),
+         journal = "Under review",
+         year = 2014,
+  	      textVersion = 
+         paste("T Wang, M Chen and H Zhao",
+               "Extracting DNA methylation values by joint modeling of multiple profiles.")
+)
+
