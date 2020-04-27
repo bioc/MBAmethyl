@@ -1,7 +1,7 @@
 Package: MBAmethyl
 Type: Package
 Title: Model-based analysis of DNA methylation data
-Version: 1.21.0
+Version: 1.22.0
 Date: 2014-10-03
 Author: Tao Wang, Mengjie Chen
 Maintainer: Tao Wang <tao.wang.tw376@yale.edu>
